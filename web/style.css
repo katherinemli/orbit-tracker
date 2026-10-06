@@ -1,0 +1,142 @@
+:root {
+  --bg: #0b0f14;
+  --panel: #121820;
+  --line: #1f2a36;
+  --text: #d6dee8;
+  --muted: #7d8a99;
+  --accent: #4fd1c5;
+  --amber: #f6ad55;
+  --red: #fc6d6d;
+  --blue: #63b3ed;
+  --green: #68d391;
+  --mono: 'IBM Plex Mono', ui-monospace, monospace;
+}
+
+* { box-sizing: border-box; }
+[v-cloak] { display: none; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 14px/1.4 'IBM Plex Sans', system-ui, sans-serif;
+}
+
+.mono { font-family: var(--mono); }
+small { color: var(--muted); font-weight: 400; }
+
+/* Header */
+.bar {
+  display: flex; align-items: center; gap: 14px;
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--line);
+  background: var(--panel);
+}
+.brand { display: flex; align-items: center; gap: 8px; font-weight: 600; letter-spacing: .02em; }
+.logo { width: 22px; height: 22px; fill: none; stroke: var(--accent); stroke-width: 1.6; }
+.logo circle { fill: var(--accent); stroke: none; }
+.spacer { flex: 1; }
+.clock { color: var(--muted); }
+.conn { font: 500 12px var(--mono); color: var(--red); text-transform: uppercase; }
+.conn::before { content: '●'; margin-right: 6px; }
+.conn.ok { color: var(--green); }
+
+.pill {
+  font: 600 12px var(--mono);
+  padding: 3px 10px; border-radius: 999px;
+  border: 1px solid currentColor; color: var(--muted);
+}
+.pill.acquiring, .pill.pointing { color: var(--amber); }
+.pill.tracking { color: var(--green); }
+.pill.fault { color: var(--red); }
+
+/* Layout */
+.grid {
+  display: grid; gap: 16px; padding: 16px 20px;
+  grid-template-columns: 1.1fr 1fr 1.3fr;
+  grid-template-areas:
+    "pipe pipe pipe"
+    "sky  read chart"
+    "sky  events events";
+}
+.card {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 16px;
+}
+h2 { margin: 0 0 12px; font-size: 12px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+h2 small { text-transform: none; letter-spacing: 0; }
+
+/* Pipeline */
+.pipeline { grid-area: pipe; display: flex; gap: 8px; padding: 12px 16px; }
+.step {
+  flex: 1; display: flex; align-items: center; gap: 8px;
+  font: 500 12px var(--mono); color: var(--muted);
+  padding: 8px 10px; border-radius: 6px; border: 1px solid var(--line);
+}
+.step .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--line); }
+.step.done { color: var(--text); }
+.step.done .dot { background: var(--accent); }
+.step.current { color: var(--bg); background: var(--accent); border-color: var(--accent); }
+.step.current .dot { background: var(--bg); }
+.step.fault { flex: .6; }
+.step.fault.current { background: var(--red); border-color: var(--red); }
+
+/* Sky view */
+.sky { grid-area: sky; }
+.polar { width: 100%; max-width: 420px; display: block; margin: 0 auto; }
+.ring { fill: none; stroke: var(--line); stroke-width: .8; }
+.axis { fill: var(--muted); font: 600 9px var(--mono); text-anchor: middle; }
+.elev { fill: var(--muted); font: 7px var(--mono); opacity: .7; }
+.trail { fill: none; stroke: var(--accent); stroke-width: 1; opacity: .35; }
+.target line { stroke: var(--amber); stroke-width: 1.8; }
+.mount { fill: var(--blue); stroke: var(--bg); stroke-width: 1.5; transition: cx .9s linear, cy .9s linear; }
+.mount.locked { fill: var(--green); }
+.legend { display: flex; gap: 6px 14px; align-items: center; justify-content: center; color: var(--muted); font-size: 12px; margin-top: 8px; }
+.lg { display: inline-block; width: 10px; height: 10px; border-radius: 50%; }
+.lg.mount { background: var(--blue); }
+.lg.target { background: var(--amber); border-radius: 2px; }
+
+/* Readouts */
+.readouts { grid-area: read; display: flex; flex-direction: column; }
+dl { margin: 0; display: grid; gap: 10px; }
+dl > div { display: flex; justify-content: space-between; align-items: baseline; border-bottom: 1px dashed var(--line); padding-bottom: 8px; }
+dt { color: var(--muted); }
+dd { margin: 0; font-size: 15px; }
+dd.good { color: var(--green); }
+dd.fair { color: var(--amber); }
+dd.bad { color: var(--red); }
+
+.controls { display: flex; gap: 8px; margin-top: auto; padding-top: 16px; }
+button {
+  flex: 1; padding: 9px 0; border-radius: 6px; cursor: pointer;
+  font: 600 13px 'IBM Plex Sans', sans-serif;
+  background: var(--accent); color: var(--bg); border: 1px solid var(--accent);
+}
+button.ghost { background: transparent; color: var(--text); border-color: var(--line); }
+button.warn { background: var(--red); border-color: var(--red); }
+button:disabled { opacity: .35; cursor: not-allowed; }
+
+/* Charts */
+.chart { grid-area: chart; }
+.spark { width: 100%; height: 90px; display: block; margin-bottom: 14px; background: linear-gradient(var(--line) 1px, transparent 1px) 0 0 / 100% 25%; }
+.line { fill: none; stroke-width: 1.6; vector-effect: non-scaling-stroke; }
+.line.signal { stroke: var(--accent); }
+.line.error { stroke: var(--amber); }
+.thresh { stroke: var(--green); stroke-dasharray: 4 4; vector-effect: non-scaling-stroke; opacity: .6; }
+
+/* Events */
+.events { grid-area: events; }
+ol { list-style: none; margin: 0; padding: 0; max-height: 220px; overflow: auto; font-size: 13px; }
+li { display: flex; gap: 12px; padding: 5px 0; border-bottom: 1px solid var(--line); }
+li time { color: var(--muted); }
+li.warn { color: var(--amber); }
+
+@media (max-width: 900px) {
+  .grid { grid-template-columns: 1fr; grid-template-areas: "pipe" "sky" "read" "chart" "events"; padding: 12px 16px; }
+  .pipeline { flex-wrap: wrap; }
+  .step { flex: 1 1 40%; }
+  .bar { padding: 12px 16px; }
+  .clock { display: none; }
+}

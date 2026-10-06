@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Orbit Tracker</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <script src="vendor/vue.global.prod.js"></script>
+</head>
+<body>
+<div id="app" v-cloak>
+  <header class="bar">
+    <div class="brand">
+      <svg viewBox="0 0 24 24" class="logo" aria-hidden="true">
+        <circle cx="12" cy="12" r="3.2"/>
+        <ellipse cx="12" cy="12" rx="10" ry="4.2" transform="rotate(-25 12 12)"/>
+      </svg>
+      <span>Orbit Tracker</span>
+    </div>
+    <div class="pill" :class="stateClass">{{ status?.state ?? '—' }}</div>
+    <div class="spacer"></div>
+    <div class="conn" :class="{ ok: connected }">{{ connected ? 'live' : 'offline' }}</div>
+    <div class="clock mono">{{ clock }}</div>
+  </header>
+
+  <main class="grid">
+    <!-- State pipeline -->
+    <section class="card pipeline">
+      <div v-for="(s, i) in pipeline" :key="s" class="step"
+           :class="{ done: stepIndex > i, current: stepIndex === i }">
+        <span class="dot"></span>{{ s }}
+      </div>
+      <div class="step fault" :class="{ current: status?.state === 'FAULT' }">
+        <span class="dot"></span>FAULT
+      </div>
+    </section>
+
+    <!-- Sky view -->
+    <section class="card sky">
+      <h2>Sky view</h2>
+      <svg viewBox="-120 -120 240 240" class="polar">
+        <circle v-for="r in [100, 66.7, 33.3]" :key="r" :r="r" class="ring"/>
+        <line x1="-100" y1="0" x2="100" y2="0" class="ring"/>
+        <line x1="0" y1="-100" x2="0" y2="100" class="ring"/>
+        <text v-for="l in compass" :key="l.t" :x="l.x" :y="l.y" class="axis">{{ l.t }}</text>
+        <text x="3" y="-68" class="elev">30°</text>
+        <text x="3" y="-35" class="elev">60°</text>
+        <polyline :points="trailPoints" class="trail"/>
+        <g v-if="status" :transform="`translate(${xy(status.target).join(',')})`" class="target">
+          <line x1="-5" y1="-5" x2="5" y2="5"/><line x1="-5" y1="5" x2="5" y2="-5"/>
+        </g>
+        <circle v-if="status" :cx="xy(status.mount)[0]" :cy="xy(status.mount)[1]" r="4"
+                class="mount" :class="{ locked: status.locked }"/>
+      </svg>
+      <div class="legend"><span class="lg mount"></span>mount <span class="lg target"></span>target</div>
+    </section>
+
+    <!-- Readouts -->
+    <section class="card readouts">
+      <h2>Telemetry</h2>
+      <dl>
+        <div><dt>Mount az / el</dt><dd class="mono">{{ fmt(status?.mount.az) }}° / {{ fmt(status?.mount.el) }}°</dd></div>
+        <div><dt>Target az / el</dt><dd class="mono">{{ fmt(status?.target.az) }}° / {{ fmt(status?.target.el) }}°</dd></div>
+        <div><dt>Pointing error</dt><dd class="mono" :class="errorClass">{{ fmt(status?.error_deg, 3) }}°</dd></div>
+        <div><dt>Signal</dt><dd class="mono">{{ status?.signal_dbm ?? '—' }} <small>dBm</small></dd></div>
+        <div><dt>Temperature</dt><dd class="mono">{{ fmt(status?.temperature_c, 1) }} <small>°C</small></dd></div>
+      </dl>
+      <div class="controls">
+        <button @click="send('start')" :disabled="status?.state !== 'IDLE'">Start</button>
+        <button @click="send('stop')" :disabled="!active" class="ghost">Stop</button>
+        <button @click="send('reset')" v-if="status?.state === 'FAULT'" class="warn">Reset</button>
+      </div>
+    </section>
+
+    <!-- Charts -->
+    <section class="card chart">
+      <h2>Signal <small>last 5 min · dBm</small></h2>
+      <svg viewBox="0 0 400 110" preserveAspectRatio="none" class="spark">
+        <polyline :points="series('signal_dbm', -100, -40)" class="line signal"/>
+      </svg>
+      <h2>Pointing error <small>last 5 min · deg</small></h2>
+      <svg viewBox="0 0 400 110" preserveAspectRatio="none" class="spark">
+        <line x1="0" :y1="threshY" x2="400" :y2="threshY" class="thresh"/>
+        <polyline :points="series('error_deg', 0, 5)" class="line error"/>
+      </svg>
+    </section>
+
+    <!-- Events -->
+    <section class="card events">
+      <h2>Events</h2>
+      <ol>
+        <li v-for="(e, i) in status?.events ?? []" :key="i" :class="e.level">
+          <time class="mono">{{ e.time.slice(11, 19) }}</time>{{ e.message }}
+        </li>
+      </ol>
+    </section>
+  </main>
+</div>
+<script src="app.js"></script>
+</body>
+</html>
